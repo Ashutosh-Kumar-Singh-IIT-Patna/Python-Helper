@@ -1,0 +1,157 @@
+app/
+├── .env
+├── main.py
+├── models.py
+├── database.py
+├── auth.py
+└── config.py
+
+pip install flask sqlalchemy psycopg2-binary pydantic python-dotenv pyjwt
+
+## .env
+DATABASE_URL=postgresql://user:password@localhost:5432/mydb
+SECRET_KEY=mysecret
+
+
+## config.py
+from pydantic import BaseSettings
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+class Settings(BaseSettings):
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
+
+settings = Settings()
+
+
+## database.py
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from app.config import settings
+
+engine = create_engine(settings.DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+## models.py
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from sqlalchemy.orm import relationship
+from app.database import Base
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    posts = relationship("Post", back_populates="owner")
+
+class Post(Base):
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    content = Column(Text)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    owner = relationship("User", back_populates="posts")
+
+
+## auth.py
+import jwt
+from datetime import datetime, timedelta
+from app.config import settings
+
+SECRET_KEY = settings.SECRET_KEY
+
+def create_token(user_id: int):
+    payload = {
+        "sub": user_id,
+        "exp": datetime.utcnow() + timedelta(hours=2)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return payload["sub"]
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+
+## main.py
+from flask import Flask, request, jsonify
+from app.database import Base, engine, SessionLocal
+from app.models import User, Post
+from app.auth import create_token, verify_token
+
+app = Flask(__name__)
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+@app.post("/users")
+def create_user():
+    data = request.get_json()
+    db = SessionLocal()
+    user = User(username=data["username"], password=data["password"])
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    token = create_token(user.id)
+    return jsonify({"id": user.id, "username": user.username, "token": token})
+
+@app.get("/users")
+def get_users():
+    db = SessionLocal()
+    users = db.query(User).all()
+    return jsonify([{"id": u.id, "username": u.username} for u in users])
+
+@app.get("/users/<int:user_id>")
+def get_user(user_id):
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        return jsonify({"id": user.id, "username": user.username})
+    return jsonify({"error": "User not found"}), 404
+
+@app.post("/posts")
+def create_post():
+    data = request.get_json()
+    token = data.get("token")
+    user_id = verify_token(token)
+    if not user_id:
+        return jsonify({"error": "Invalid or missing token"}), 401
+
+    db = SessionLocal()
+    post = Post(title=data["title"], content=data["content"], user_id=user_id)
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    return jsonify({"id": post.id, "title": post.title, "content": post.content})
+
+@app.get("/posts")
+def get_posts():
+    db = SessionLocal()
+    posts = db.query(Post).all()
+    return jsonify([
+        {"id": p.id, "title": p.title, "content": p.content, "user_id": p.user_id}
+        for p in posts
+    ])
+
+@app.get("/posts/user/<int:user_id>")
+def get_posts_by_user(user_id):
+    db = SessionLocal()
+    posts = db.query(Post).filter(Post.user_id == user_id).all()
+    return jsonify([
+        {"id": p.id, "title": p.title, "content": p.content} for p in posts
+    ])
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+python app/main.py
