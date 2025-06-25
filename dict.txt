@@ -1,0 +1,50 @@
+student = {
+    "name": "Ashutosh",
+    "age": 21,
+    "is_active": True
+}
+
+print(student["name"])      # Access: Ashutosh
+student["age"] = 22         # Modify
+student["college"] = "IIT"  # Add
+del student["is_active"]    # Delete
+
+student.get("name")            # Safe access
+student.keys()                 # All keys
+student.values()               # All values
+student.items()                # Key-value pairs
+student.pop("age")             # Remove and return
+student.clear()                # Empty dict
+
+Get with default	d.get(k, default)
+
+for key in student:
+    print(key, student[key])
+
+for k, v in student.items():
+    print(f"{k}: {v}")
+
+
+squares = {x: x**2 for x in range(5)}  # {0:0, 1:1, 2:4, 3:9, 4:16}
+
+students = {
+    "101": {"name": "Ash", "marks": 90},
+    "102": {"name": "Sam", "marks": 85}
+}
+print(students["101"]["name"])  # Ash
+
+students = {
+    "Ash": [85, 90, 95],
+    "Krati": [80, 82, 88]
+}
+for name, marks in students.items():
+    print(name, "→", sum(marks)/len(marks))
+
+| Method               | Description                |
+| -------------------- | -------------------------- |
+| `dict.get(k, d)`     | Returns value or default   |
+| `dict.pop(k)`        | Removes and returns item   |
+| `dict.keys()`        | Returns all keys           |
+| `dict.values()`      | Returns all values         |
+| `dict.items()`       | Returns (key, value) pairs |
+| `dict.update(other)` | Merges another dictionary  |

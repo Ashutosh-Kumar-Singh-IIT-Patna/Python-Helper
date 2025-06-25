@@ -1,0 +1,7 @@
+| Type            | Convention         | Example       |
+| --------------- | ------------------ | ------------- |
+| Variables       | `snake_case`       | `user_name`   |
+| Constants       | `UPPER_CASE`       | `MAX_SIZE`    |
+| Classes         | `PascalCase`       | `UserProfile` |
+| Private members | `_single_leading`  | `_id`         |
+| "Very private"  | `__double_leading` | `__init__`    |

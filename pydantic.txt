@@ -1,0 +1,37 @@
+from pydantic import BaseModel
+
+class User(BaseModel):
+    id: int
+    name: str
+    is_active: bool = True
+
+user = User(id=1, name="Ash")
+print(user.dict())  # {'id': 1, 'name': 'Ash', 'is_active': True}
+
+
+from pydantic import BaseModel, validator
+
+class Product(BaseModel):
+    name: str
+    price: float
+
+    @validator("price")
+    def positive_price(cls, value):
+        if value <= 0:
+            raise ValueError("Price must be positive")
+        return value
+
+
+class Address(BaseModel):
+    city: str
+    zip_code: str
+
+class User(BaseModel):
+    name: str
+    address: Address
+
+u = User(name="Ash", address={"city": "Delhi", "zip_code": "110001"})
+
+
+data = {"id": 1, "name": "Ash", "is_active": "true"}
+user = User.parse_obj(data)

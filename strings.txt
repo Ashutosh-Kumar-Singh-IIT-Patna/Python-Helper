@@ -1,0 +1,26 @@
+s = "Hello"
+s2 = 'World'
+
+| Operation        | Code                      | Output            |
+| ---------------- | ------------------------- | ----------------- |
+| Concatenation    | `"Hi" + " There"`         | `"Hi There"`      |
+| Repetition       | `"ha" * 3`                | `"hahaha"`        |
+| Indexing         | `s[0]`                    | `'H'`             |
+| Slicing          | `s[1:4]`                  | `'ell'`           |
+| Length           | `len(s)`                  | `5`               |
+| Check substring  | `'el' in s`               | `True`            |
+| Replace          | `s.replace("l", "z")`     | `"Hezzo"`         |
+| Split            | `"a,b,c".split(",")`      | `['a', 'b', 'c']` |
+| Join             | `" ".join(["a", "b"])`    | `"a b"`           |
+| Upper/Lower      | `s.upper()` / `s.lower()` | `'HELLO'`         |
+| Strip whitespace | `" hello ".strip()`       | `'hello'`         |
+
+name = "Ash"
+age = 22
+print(f"My name is {name} and I'm {age}")
+
+path = r"C:\Users\Name"
+
+for char in "Hello":
+    print(char)
+

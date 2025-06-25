@@ -1,0 +1,50 @@
+Metaclasses — “Classes of Classes”
+
+What is a metaclass?
+A class is an instance of a metaclass
+Just like an object is created from a class, a class is created from a metaclass
+Default metaclass in Python is type
+
+class ShapeMeta(type):
+    registry = {}  # Global registry of shapes
+
+    def __new__(cls, name, bases, dct):
+        klass = super().__new__(cls, name, bases, dct)
+        if name != "Shape":  # Skip base class itself
+            cls.registry[name] = klass
+        return klass
+
+class Shape(metaclass=ShapeMeta):
+    def area(self):
+        raise NotImplementedError
+
+class Circle(Shape):
+    def area(self):
+        return 3.14 * 5 * 5
+
+class Square(Shape):
+    def area(self):
+        return 4 * 4
+
+print(ShapeMeta.registry)
+{'Circle': <class '__main__.Circle'>, 'Square': <class '__main__.Square'>}
+
+
+(cls, name, bases, dct)
+These are the arguments to __new__, and they are critical:
+
+◾ cls
+The metaclass itself (typically a subclass of type)
+This is passed so the parent type.__new__() knows what class to build.
+
+◾ name
+A str: The name of the class being created
+Example: "Circle" if defining class Circle(Shape): ...
+
+◾ bases
+A tuple of base classes (superclasses) the new class inherits from
+Example: (Shape,)
+
+◾ dct
+A dict: Contains all the class attributes, methods, and body during creation
+Example: { '__init__': <function>, 'area': <function> }

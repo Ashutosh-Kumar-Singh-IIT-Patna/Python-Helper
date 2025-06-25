@@ -1,0 +1,29 @@
+import asyncio
+
+async def say_hello():
+    print("Hello")
+    await asyncio.sleep(1)
+    print("World")
+
+asyncio.run(say_hello())
+
+
+async def task(n):
+    print(f"Start {n}")
+    await asyncio.sleep(1)
+    print(f"End {n}")
+
+async def main():
+    await asyncio.gather(task(1), task(2), task(3))
+
+asyncio.run(main())
+
+
+| Task Type | Best Approach      |
+| --------- | ------------------ |
+| CPU-bound | `multiprocessing`  |
+| I/O-bound | `asyncio`, threads |
+
+Multithreading in Python (for CPU-bound tasks) is limited due to the GIL.
+I/O-bound tasks are fine with threads.
+For true parallelism, use multiprocessing.

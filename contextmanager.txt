@@ -1,0 +1,89 @@
+A context manager handles setup and cleanup actions around a block of code.
+Used via the with statement.
+Most common example: file handling.
+
+with open("file.txt") as f:
+    data = f.read()
+# File is automatically closed afterward ✅
+
+__enter__()  # What happens at the start of the 'with' block
+__exit__()   # What happens at the end (even if there's an error)
+
+
+class MyContext:
+    def __enter__(self):
+        print("Entering context")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("Exiting context")
+
+with MyContext():
+    print("Inside block")
+
+Entering context
+Inside block
+Exiting context
+
+
+import time
+
+class Timer:
+    def __enter__(self):
+        self.start = time.time()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.time()
+        print(f"Took {self.end - self.start:.4f} seconds")
+
+with Timer():
+    sum(range(1000000))
+
+
+from contextlib import contextmanager
+
+@contextmanager
+def open_db():
+    print("Connecting to DB")
+    yield
+    print("Closing DB")
+
+with open_db():
+    print("Querying DB")
+
+@contextmanager (from contextlib)
+This turns a generator function into a context manager — so it can be used with a with statement.
+
+When called inside a with block:
+Everything before yield runs on entering the context.
+Everything after yield runs on exiting the context (even if there's an exception).
+
+What happens:
+The function open_db() is called, returning a generator.
+
+Python executes up to the yield:
+✅ Prints "Connecting to DB"
+Control goes to the with block:
+✅ Prints "Querying DB"
+After the block ends, Python resumes the generator after the yield:
+✅ Prints "Closing DB"
+
+yield acts like a marker that splits the code:
+Everything before yield is your setup.
+Everything after yield is your cleanup.
+
+
+@contextmanager
+def open_db():
+    print("Connecting")
+    conn = "db_connection"
+    yield conn
+    print("Closing")
+
+with open_db() as db:
+    print(f"Using {db}")
+
+Connecting
+Using db_connection
+Closing

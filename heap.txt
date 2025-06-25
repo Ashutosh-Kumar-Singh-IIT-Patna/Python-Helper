@@ -1,0 +1,44 @@
+import heapq
+
+heap = []
+heapq.heappush(heap, 5)
+heapq.heappush(heap, 1)
+heapq.heappush(heap, 3)
+
+print(heap)            # [1, 5, 3] (internally heapified)
+print(heap[0])  # 1 (smallest in min-heap)
+print(heapq.heappop(heap))  # 1 (smallest)
+
+
+nums = [5, 7, 1, 3]
+heapq.heapify(nums)
+print(nums)  # [1, 3, 5, 7]
+
+Since heapq is a Min-Heap, you can simulate a Max-Heap by inserting negative values.
+
+tasks = []
+heapq.heappush(tasks, (2, "Clean"))
+heapq.heappush(tasks, (1, "Code"))
+heapq.heappush(tasks, (3, "Sleep"))
+
+print(heapq.heappop(tasks))  # (1, 'Code')
+
+
+class PriorityQueue:
+    def __init__(self):
+        self._queue = []
+        self._index = 0
+
+    def push(self, item, priority):
+        heapq.heappush(self._queue, (priority, self._index, item))
+        self._index += 1
+
+    def pop(self):
+        return heapq.heappop(self._queue)[-1]  # [-1] accesses the last item in the tuple, which is the actual value (item)
+
+pq = PriorityQueue()
+pq.push("task1", 2)
+pq.push("task2", 1)
+pq.push("task3", 3)
+
+print(pq.pop())  # task2

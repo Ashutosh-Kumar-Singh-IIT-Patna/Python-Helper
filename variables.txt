@@ -1,0 +1,12 @@
+x = 10
+name = "Ashutosh"
+is_active = True
+
+x = 10
+x = "hello"  # Valid — dynamic typing
+
+a, b = 1, 2
+a, b = b, a
+print(a, b)  # 2 1
+
+x = y = z = 0  # All point to 0

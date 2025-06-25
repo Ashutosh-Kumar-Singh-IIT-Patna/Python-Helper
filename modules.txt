@@ -1,0 +1,8 @@
+| Module     | Purpose                       |
+| ---------- | ----------------------------- |
+| `os`       | File system, environment vars |
+| `sys`      | System-level operations       |
+| `math`     | Math functions                |
+| `random`   | Random numbers                |
+| `datetime` | Dates and times               |
+| `json`     | JSON parsing                  |

@@ -1,0 +1,175 @@
+class Person:
+    def __init__(self, name, age):     # Constructor
+        self.name = name               # Attribute
+        self.age = age
+
+    def greet(self):                   # Method
+        print(f"Hello, my name is {self.name}")
+
+p1 = Person("Ash", 22)  # Object (instance)
+p1.greet()              # Hello, my name is Ash
+
+
+class Dog:
+    species = "Canine"  # Class variable (shared)
+
+    def __init__(self, name):
+        self.name = name  # Instance variable
+
+d = Dog("Tommy")
+print(d.species)  # Canine
+
+
+class BankAccount:
+    def __init__(self):
+        self._balance = 0         # Protected (uses _)
+        self.__pin = "1234"       # Private (uses __)
+
+    def get_balance(self, pin):
+        if pin == self.__pin:
+            return self._balance
+        return "Invalid PIN"
+
+b = BankAccount()
+print(b.get_balance("1234"))  # 0
+
+class Animal:
+    def speak(self):
+        print("Animal speaks")
+
+class Dog(Animal):  # Inherits from Animal
+    def speak(self):
+        print("Dog barks")
+
+d = Dog()
+d.speak()  # Dog barks
+
+
+class Parent:
+    def show(self):
+        print("Parent method")
+
+class Child(Parent):
+    def show(self):
+        super().show()      # Call parent method
+        print("Child method")
+
+c = Child()
+c.show()
+
+Parent method
+Child method
+
+class Bird:
+    def sound(self): print("Chirp")
+
+class Duck(Bird):
+    def sound(self): print("Quack")
+
+def make_sound(bird: Bird):
+    bird.sound()
+
+make_sound(Bird())  # Chirp
+make_sound(Duck())  # Quack
+
+
+from abc import ABC, abstractmethod
+
+class Shape(ABC):
+    @abstractmethod
+    def area(self):
+        pass
+
+class Circle(Shape):
+    def area(self):
+        return 3.14 * 5 * 5
+
+c = Circle()
+print(c.area())
+
+
+class Person:
+    count = 0
+
+    def __init__(self): Person.count += 1
+
+    @classmethod
+    def total(cls):
+        return cls.count
+
+    @staticmethod
+    def greet():
+        print("Hello!")
+
+print(Person.total())
+Person.greet()
+
+
+| Feature              | `@classmethod`                     | `@staticmethod`                  |
+| -------------------- | ---------------------------------- | -------------------------------- |
+| Takes `cls`          | ✅ Yes (first arg is class)         | ❌ No `self` or `cls` (just args) |
+| Access to class data | ✅ Yes                              | ❌ No                             |
+| Use case             | Factory methods, alter class state | Utility/helper methods           |
+| Binding              | Bound to class                     | Not bound to class or instance   |
+
+
+class Person:
+    count = 0
+
+    def __init__(self, name):
+        self.name = name
+        Person.count += 1
+
+    @classmethod
+    def get_count(cls):
+        return cls.count
+
+print(Person.get_count())  # 0
+p1 = Person("Ash")
+print(Person.get_count())  # 1
+
+get_count() can access cls.count
+cls is the class itself
+
+class Math:
+    @staticmethod
+    def add(a, b):
+        return a + b
+
+print(Math.add(2, 3))  # 5
+
+No access to class or instance
+Just a plain function inside the class (namespaced logically)
+
+| Modifier  | Prefix     | Access Level                           |
+| --------- | ---------- | -------------------------------------- |
+| Public    | *(no `_`)* | Accessible from anywhere               |
+| Protected | `_name`    | **Conventionally** internal use        |
+| Private   | `__name`   | Name mangled (not directly accessible) |
+
+
+Protected Attributes (_var)
+Prefix: _
+Just a convention — not enforced
+Meant for internal use only
+Still accessible from outside
+
+class Example:
+    def __init__(self):
+        self._data = 42
+
+e = Example()
+print(e._data)  # ⚠️ Works, but discouraged
+
+Private Attributes (__var)
+Prefix: __ (double underscore)
+Python name mangles it to _ClassName__var
+Prevents accidental access, not true privacy
+
+class Secret:
+    def __init__(self):
+        self.__code = "XYZ123"
+
+s = Secret()
+# print(s.__code)      ❌ AttributeError
+print(s._Secret__code)  # ✅ Access via mangled name

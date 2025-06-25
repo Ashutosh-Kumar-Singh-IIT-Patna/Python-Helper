@@ -1,0 +1,184 @@
+|  Tool       | Purpose                          |
+|  ---------- | -------------------------------- |
+|  Flask      | Web framework                    |
+|  SQLAlchemy | ORM to talk to PostgreSQL        |
+|  Strawberry | GraphQL library (modern & typed) |
+|  psycopg2   | PostgreSQL driver                |
+
+pip install strawberry-graphql[flask] sqlalchemy psycopg2-binary
+
+
+project/
+│
+├── app.py           # Flask app
+├── models.py        # SQLAlchemy models
+├── schema.py        # Strawberry schema
+└── db.py            # DB setup (SQLAlchemy engine + session)
+
+models.py:
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True)
+    email = Column(String)
+
+    posts = relationship("Post", back_populates="author")
+
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    content = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    author = relationship("User", back_populates="posts")
+
+db.py:
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import Base
+
+DATABASE_URL = "postgresql://username:password@localhost/mydb"
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine)
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+
+schema.py:
+import strawberry
+from typing import List
+from sqlalchemy.orm import Session
+from models import User as UserModel, Post as PostModel
+from db import SessionLocal
+
+@strawberry.type
+class Post:
+    id: int
+    title: str
+    content: str
+
+@strawberry.type
+class User:
+    id: int
+    username: str
+    email: str
+    posts: List[Post]
+
+@strawberry.input
+class UserInput:
+    username: str
+    email: str
+
+@strawberry.input
+class PostInput:
+    user_id: int
+    title: str
+    content: str
+
+@strawberry.type
+class Query:
+    @strawberry.field
+    def users(self) -> List[User]:
+        db: Session = SessionLocal()
+        users = db.query(UserModel).all()
+        return [
+            User(
+                id=u.id,
+                username=u.username,
+                email=u.email,
+                posts=[
+                    Post(id=p.id, title=p.title, content=p.content)
+                    for p in u.posts
+                ]
+            ) for u in users
+        ]
+
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    def create_user(self, input: UserInput) -> User:
+        db: Session = SessionLocal()
+        user = UserModel(username=input.username, email=input.email)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return User(id=user.id, username=user.username, email=user.email, posts=[])
+
+    @strawberry.mutation
+    def create_post(self, input: PostInput) -> Post:
+        db: Session = SessionLocal()
+        post = PostModel(
+            title=input.title,
+            content=input.content,
+            user_id=input.user_id
+        )
+        db.add(post)
+        db.commit()
+        db.refresh(post)
+        return Post(id=post.id, title=post.title, content=post.content)
+
+schema = strawberry.Schema(query=Query, mutation=Mutation)
+
+
+app.py:
+from flask import Flask
+from strawberry.flask.views import GraphQLView
+from schema import schema
+from db import init_db
+
+app = Flask(__name__)
+init_db()
+
+app.add_url_rule(
+    "/graphql",
+    view_func=GraphQLView.as_view("graphql_view", schema=schema)
+)
+
+@app.route("/")
+def hello():
+    return "Go to /graphql"
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+python app.py
+
+http://localhost:5000/graphql
+query {
+  users {
+    id
+    username
+    email
+    posts {
+      title
+    }
+  }
+}
+
+mutation {
+  createUser(input: {username: "ash", email: "ash@example.com"}) {
+    id
+    username
+    email
+  }
+}
+
+mutation {
+  createPost(input: {userId: 1, title: "My First Post", content: "GraphQL is awesome"}) {
+    id
+    title
+    content
+  }
+}

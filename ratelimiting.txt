@@ -1,0 +1,51 @@
+pip install Flask-Limiter
+
+from flask import Flask, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+app = Flask(__name__)
+
+# Create Limiter instance using IP address as the identifier
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["5 per minute"]  # default rate limit
+)
+
+
+@app.route("/public")
+@limiter.limit("10 per minute")
+def public():
+    return jsonify({"message": "This is a public endpoint"})
+
+@app.route("/strict")
+@limiter.limit("1 per minute")
+def strict():
+    return jsonify({"message": "This is a strict endpoint"})
+
+
+@app.route("/user/<username>")
+@limiter.limit(lambda: "3/minute" if "admin" not in request.path else "100/minute")
+def user_route(username):
+    return jsonify({"user": username})
+
+
+
+
+from flask import Flask, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+app = Flask(__name__)
+
+limiter = Limiter(get_remote_address, app=app)
+
+@app.route("/limited")
+@limiter.limit("3 per minute")
+def limited():
+    return jsonify(message="You can call this up to 3 times per minute")
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify(error="Rate limit exceeded. Please slow down."), 429

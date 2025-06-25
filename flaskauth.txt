@@ -1,0 +1,73 @@
+pip install Flask PyJWT
+
+from flask import Flask, request, jsonify
+import jwt
+import datetime
+from functools import wraps
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'my_secret_key'  # Use env var in real apps
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    username = data.get('username')
+    password = data.get('password')
+
+    # Dummy check (in real app, check DB)
+    if username == 'admin' and password == 'password':
+        token = jwt.encode(
+            {
+                'user': username,
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+            },
+            app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
+        return jsonify({'token': token})
+
+    return jsonify({'message': 'Invalid credentials'}), 401
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 403
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = data['user']
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token!'}), 403
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+
+@app.route('/dashboard')
+@token_required
+def dashboard(current_user):
+    return jsonify({'message': f'Welcome {current_user}! This is your dashboard.'})
+
+
+req:
+{
+  "username": "admin",
+  "password": "password"
+}
+
+
+res:
+{
+  "token": "eyJ0eXAiOiJKV1Qi..."
+}
+
+
+Authorization: <token>

@@ -1,0 +1,17 @@
+| Operation                      | Average Time Complexity | Notes                                         |
+| ------------------------------ | ----------------------- | --------------------------------------------- |
+| `lst.append(x)`                | **O(1)**                | Amortized constant time; appends at the end   |
+| `lst.pop()` (end)              | **O(1)**                | Removes and returns the last element          |
+| `lst.pop(i)` (arbitrary index) | **O(n)**                | Requires shifting elements after index `i`    |
+| `lst.insert(i, x)`             | **O(n)**                | All elements after `i` must be shifted right  |
+| `lst.remove(x)`                | **O(n)**                | Searches for `x`, then shifts elements        |
+| `lst.index(x)`                 | **O(n)**                | Linear search for value `x`                   |
+| `x in lst`                     | **O(n)**                | Linear membership check                       |
+| `len(lst)`                     | **O(1)**                | Stored internally; constant time              |
+| Iteration (`for x in lst`)     | **O(n)**                | Goes through all elements                     |
+| `lst[i]` / `lst[i] = x`        | **O(1)**                | Direct access via index                       |
+| `lst.sort()` (Timsort)         | **O(n log n)**          | Highly optimized hybrid sort                  |
+| `lst.reverse()`                | **O(n)**                | Reverses list in-place                        |
+| `lst.copy()`                   | **O(n)**                | Creates shallow copy                          |
+| Slicing `lst[a:b]`             | **O(k)**                | Where `k = b - a` (number of sliced elements) |
+| Extend `lst += other_list`     | **O(k)**                | `k = len(other_list)`                         |

@@ -1,0 +1,38 @@
+try:
+    risky_code()
+except SomeError:
+    handle_error()
+
+try:
+    x = 10 / 0
+except ZeroDivisionError:
+    print("Can't divide by zero!")
+
+try:
+    a = int("abc")
+except ValueError:
+    print("That was not a number.")
+
+try:
+    x = int("hello")
+except ValueError:
+    print("Value error")
+except ZeroDivisionError:
+    print("Math error")
+
+try:
+    x = 1 / 0
+except Exception as e:
+    print("Error:", e)
+
+try:
+    x = 5
+except Exception:
+    print("Error")
+else: # runs if no exception occurs
+    print("No error occurred")
+finally: #runs no matter what (useful for cleanup like closing files)
+    print("Always runs")
+
+
+

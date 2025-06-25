@@ -1,0 +1,76 @@
+Syntax	   Stands for	  Used for
+*args	   *arguments	  Any number of positional args
+**kwargs   keyword args	  Any number of keyword args
+
+def add(*args):
+    print(args)
+
+add(1, 2, 3)  # (1, 2, 3)
+
+
+def show_info(**kwargs):
+    print(kwargs)
+
+show_info(name="Ash", age=22)
+# {'name': 'Ash', 'age': 22}
+
+def greet(greeting, *args, **kwargs):
+    print(greeting)   # Positional
+    print(args)       # Extra positional
+    print(kwargs)     # Extra keyword
+
+greet("Hi", "Alice", "Bob", admin=True, active=False)
+
+Hi
+('Alice', 'Bob')
+{'admin': True, 'active': False}
+
+
+def add(x, y):
+    return x + y
+
+nums = [5, 10]
+print(add(*nums))  # Unpacks to: add(5, 10)
+
+
+def greet(name, age):
+    print(f"{name} is {age} years old")
+
+info = {"name": "Ash", "age": 22}
+greet(**info)  # Unpacks into: greet(name="Ash", age=22)
+
+
+def log_args(*args, **kwargs):
+    print("Calling function with", args, kwargs)
+
+def wrapped_func(*args, **kwargs):
+    log_args(*args, **kwargs)
+    print("Doing something")
+
+wrapped_func(1, 2, x=5)
+
+
+def debug(func):
+    def wrapper(*args, **kwargs):
+        print(f"Calling {func.__name__} with {args} {kwargs}")
+        return func(*args, **kwargs)
+    return wrapper
+
+@debug
+def multiply(a, b):
+    return a * b
+
+multiply(2, 3)
+
+
+class Base:
+    def __init__(self, name):
+        self.name = name
+
+class Child(Base):
+    def __init__(self, *args, **kwargs):
+        print("Child init")
+        super().__init__(*args, **kwargs)
+
+c = Child("Ash")
+

@@ -1,0 +1,33 @@
+file = open("file.txt", "r")
+content = file.read()
+print(content)
+file.close()
+
+with open("file.txt", "r") as file:
+    content = file.read()
+    print(content)
+
+with open("file.txt", "r") as file:
+    for line in file:
+        print(line.strip())  # Removes trailing newline
+
+
+with open("output.txt", "w") as file:
+    file.write("Hello\n")
+    file.write("World")
+
+lines = ["first line\n", "second line\n"]
+with open("output.txt", "w") as file:
+    file.writelines(lines)
+
+
+with open("file.txt", "r") as file:
+    lines = file.readlines()
+    print(lines)  # list of lines (with \n)
+
+
+try:
+    with open("missing.txt", "r") as f:
+        print(f.read())
+except FileNotFoundError:
+    print("File does not exist!")

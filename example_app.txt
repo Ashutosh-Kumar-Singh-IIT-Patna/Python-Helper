@@ -1,0 +1,177 @@
+app/
+├── .env
+├── main.py
+├── models.py
+├── schema.py
+├── database.py
+├── auth.py
+└── config.py
+
+
+pip install flask strawberry-graphql sqlalchemy psycopg2-binary pydantic python-dotenv python-jose
+
+
+.env:
+DATABASE_URL=postgresql://user:password@localhost:5432/mydb
+SECRET_KEY=mysecret
+
+
+config.py:
+from pydantic import BaseSettings
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+class Settings(BaseSettings):
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
+
+settings = Settings()
+
+
+database.py:
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from app.config import settings
+
+engine = create_engine(settings.DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+models.py:
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from sqlalchemy.orm import relationship
+from app.database import Base
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    posts = relationship("Post", back_populates="owner")
+
+class Post(Base):
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    content = Column(Text)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    owner = relationship("User", back_populates="posts")
+
+
+auth.py:
+import jwt
+from datetime import datetime, timedelta
+from app.config import settings
+
+SECRET_KEY = settings.SECRET_KEY
+
+def create_token(user_id: int):
+    payload = {
+        "sub": user_id,
+        "exp": datetime.utcnow() + timedelta(hours=2)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return payload["sub"]
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+
+schema.py:
+import strawberry
+from typing import List, Optional
+from strawberry.types import Info
+from app.models import User as UserModel, Post as PostModel
+from app.database import SessionLocal
+from app.auth import verify_token
+
+@strawberry.type
+class Post:
+    id: int
+    title: str
+    content: str
+
+@strawberry.type
+class User:
+    id: int
+    username: str
+    posts: List[Post]
+
+@strawberry.type
+class Query:
+    @strawberry.field
+    def users(self, info: Info) -> List[User]:
+        db = SessionLocal()
+        return db.query(UserModel).all()
+
+    @strawberry.field
+    def user(self, info: Info, user_id: int) -> Optional[User]:
+        db = SessionLocal()
+        return db.query(UserModel).filter(UserModel.id == user_id).first()
+
+    @strawberry.field
+    def posts(self, info: Info) -> List[Post]:
+        db = SessionLocal()
+        return db.query(PostModel).all()
+
+    @strawberry.field
+    def posts_by_user(self, info: Info, user_id: int) -> List[Post]:
+        db = SessionLocal()
+        return db.query(PostModel).filter(PostModel.user_id == user_id).all()
+
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    def create_user(self, username: str, password: str) -> User:
+        db = SessionLocal()
+        user = UserModel(username=username, password=password)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+
+    @strawberry.mutation
+    def create_post(self, title: str, content: str, token: str) -> Optional[Post]:
+        db = SessionLocal()
+        user_id = verify_token(token)
+        if not user_id:
+            return None
+        post = PostModel(title=title, content=content, user_id=user_id)
+        db.add(post)
+        db.commit()
+        db.refresh(post)
+        return post
+
+schema = strawberry.Schema(query=Query, mutation=Mutation)
+
+
+main.py:
+from flask import Flask, request
+from strawberry.flask.views import GraphQLView
+from app.schema import schema
+from app.database import Base, engine
+
+app = Flask(__name__)
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+# GraphQL route
+app.add_url_rule(
+    "/graphql",
+    view_func=GraphQLView.as_view("graphql_view", schema=schema, graphiql=True),
+)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+python app/main.py

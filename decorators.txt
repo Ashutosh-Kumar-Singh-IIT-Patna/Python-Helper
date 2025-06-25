@@ -1,0 +1,89 @@
+A function that wraps another function to add extra behavior.
+
+def logger(func):
+    def wrapper(*args, **kwargs):
+        print(f"Calling {func.__name__}")
+        return func(*args, **kwargs)
+    return wrapper
+
+@logger
+def say_hello():
+    print("Hello")
+
+say_hello()
+
+Calling say_hello
+Hello
+
+
+def requires_admin(func):
+    def wrapper(user, *args, **kwargs):
+        if not user.get("is_admin"):
+            raise PermissionError("Admin access required")
+        return func(user, *args, **kwargs)
+    return wrapper
+
+@requires_admin
+def delete_database(user):
+    print("Database deleted!")
+
+admin_user = {"name": "Alice", "is_admin": True}
+normal_user = {"name": "Bob", "is_admin": False}
+
+delete_database(admin_user)   # ✅ Works
+# delete_database(normal_user) # ❌ Raises PermissionError
+
+
+from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def fib(n):
+    if n <= 1:
+        return n
+    return fib(n-1) + fib(n-2)
+
+print(fib(50))  # Fast due to caching
+
+
+import time
+
+def retry(times):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for i in range(times):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    print(f"Retry {i+1}/{times} failed: {e}")
+                    time.sleep(1)
+            raise Exception("All retries failed")
+        return wrapper
+    return decorator
+
+@retry(3)
+def flaky_operation():
+    import random
+    if random.random() < 0.7:
+        raise ValueError("Random failure")
+    print("Success!")
+
+flaky_operation()
+
+
+import time
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__} took {end - start:.4f}s")
+        return result
+    return wrapper
+
+@timer
+def slow_function():
+    time.sleep(2)
+    print("Done!")
+
+slow_function()

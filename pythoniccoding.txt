@@ -1,0 +1,20 @@
+Use list comprehensions instead of loops
+
+Use enumerate() instead of range + len
+
+Prefer unpacking over indexing
+
+Use with for file and resource management
+
+# Pythonic
+squares = [x * x for x in range(10)]
+with open("file.txt") as f:
+    data = f.read()
+
+
+| Purpose              | Pythonic Way                    |
+| -------------------- | ------------------------------- |
+| Swap variables       | `a, b = b, a`                   |
+| Default value lookup | `x = dict.get("key", default)`  |
+| Inline conditions    | `x = a if cond else b`          |
+| Loop with index      | `for i, val in enumerate(list)` |

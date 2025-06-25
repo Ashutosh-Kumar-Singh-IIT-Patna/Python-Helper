@@ -1,0 +1,33 @@
+from abc import ABC, abstractmethod
+
+class Animal(ABC):  # Inherits from ABC
+
+    @abstractmethod
+    def speak(self):
+        pass
+
+class Dog(Animal):
+    def speak(self):
+        print("Woof")
+
+# a = Animal()  ❌ TypeError
+d = Dog()       # ✅
+d.speak()       # Woof
+
+
+Abstract classes can provide partial implementation:
+class Vehicle(ABC):
+    def start(self):
+        print("Starting...")
+
+    @abstractmethod
+    def drive(self):
+        pass
+
+class Car(Vehicle):
+    def drive(self):
+        print("Driving car")
+
+c = Car()
+c.start()  # ✅ Inherited
+c.drive()

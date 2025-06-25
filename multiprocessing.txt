@@ -1,0 +1,82 @@
+from multiprocessing import Process
+
+def worker(n):
+    print(f"Processing {n}")
+
+p1 = Process(target=worker, args=(1,))
+p2 = Process(target=worker, args=(2,))
+p1.start()
+p2.start()
+p1.join()
+p2.join()
+
+
+from multiprocessing import Pool
+
+def square(x):
+    return x * x
+
+with Pool(4) as pool:
+    results = pool.map(square, [1, 2, 3, 4])
+    print(results)  # [1, 4, 9, 16]
+
+
+If your Pool size is 3 but the array has 4 items, like in this code:
+
+from multiprocessing import Pool
+
+def square(x):
+    return x * x
+
+with Pool(3) as pool:
+    results = pool.map(square, [1, 2, 3, 4])
+    print(results)
+
+Python creates 3 worker processes (because Pool(3)).
+The input list [1, 2, 3, 4] has 4 items.
+So, the pool will:
+Distribute 3 items to 3 workers.
+Once any one process finishes, it picks up the 4th item.
+This is handled automatically and efficiently.
+
+
+from multiprocessing import Pool
+
+def read_file(path):
+    with open(path) as f:
+        return f.read()
+
+files = ['file1.txt', 'file2.txt', 'file3.txt']
+
+with Pool(3) as pool:
+    contents = pool.map(read_file, files)
+
+
+from multiprocessing import Pool
+import time
+
+def task(n):
+    time.sleep(1)
+    return n * n
+
+if __name__ == "__main__":
+    with Pool(3) as pool:
+        results = []
+        
+        for i in range(5):
+            res = pool.apply_async(task, args=(i,))  # adds task to pool
+            results.append(res)
+
+        for r in results:
+            print(r.get())  # Waits for each result
+
+
+def on_done(result):
+    print("Result:", result)
+
+if __name__ == "__main__":
+    with Pool(2) as pool:
+        for i in range(3):
+            pool.apply_async(task, args=(i,), callback=on_done)
+        pool.close()
+        pool.join()

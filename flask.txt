@@ -1,0 +1,84 @@
+Flask is a micro web framework.
+Minimal, but extensible — perfect for REST APIs, simple web apps, and prototyping.
+
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Hello, Flask!"
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+hello.html
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Hello, {{ name }}!</h1>
+</body>
+</html>
+
+
+app.py
+from flask import render_template
+
+@app.route('/hi/<name>')
+def hi(name):
+    return render_template("hello.html", name=name)
+
+
+
+from flask import request
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = request.form['username']
+        return f"Welcome, {user}!"
+    return render_template("form.html")
+
+
+@app.route('/search')
+def search():
+    query = request.args.get('q')
+    return f"You searched for: {query}"
+
+
+from flask import session
+
+app.secret_key = 'supersecret'
+
+@app.route('/set')
+def set():
+    session['user'] = 'Ash'
+    return 'Session set'
+
+@app.route('/get')
+def get():
+    return session.get('user', 'Not set')
+
+
+admin.py:
+from flask import Blueprint
+
+admin_bp = Blueprint('admin', __name__) # a blueprint is a way to organize an application into modular, reusable components
+
+@admin_bp.route('/dashboard')
+def dashboard():
+    return "Admin Dashboard"
+
+
+app.py:
+from views.admin import admin_bp
+app.register_blueprint(admin_bp, url_prefix='/admin')
+
+
+from flask import jsonify
+
+@app.route('/api/data')
+def api_data():
+    return jsonify({"message": "Hello JSON", "success": True})

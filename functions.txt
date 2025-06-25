@@ -1,0 +1,78 @@
+def add(a, b):
+    return a + b
+
+result = add(3, 5)  # 8
+
+
+def greet(name="Guest"):
+    print(f"Hello, {name}!")
+
+greet()           # Hello, Guest!
+greet("Raj")      # Hello, Raj!
+
+
+def intro(name, age):
+    print(f"{name} is {age} years old")
+
+intro(age=21, name="Ashutosh")
+
+
+*args (Positional):
+def total(*nums):
+    return sum(nums)
+
+total(1, 2, 3)  # 6
+
+
+**kwargs (Keyword):
+def print_info(**info):
+    for key, value in info.items():
+        print(f"{key}: {value}")
+
+print_info(name="Ash", age=22)
+
+
+square = lambda x: x * x
+add = lambda a, b: a + b
+
+print(square(5))     # 25
+print(add(3, 7))     # 10
+
+
+def apply(func, x):
+    return func(x)
+
+def double(n):
+    return n * 2
+
+print(apply(double, 5))  # 10
+
+
+def outer(msg):
+    def inner():
+        print(msg)
+    return inner
+
+hi = outer("Hello!")
+hi()  # prints Hello!
+
+
+def decorator(func):
+    def wrapper():
+        print("Before function call")
+        func()
+        print("After function call")
+    return wrapper
+
+@decorator
+def say_hello():
+    print("Hello!")
+
+say_hello()
+
+
+def append_to_list(item, mylist=None):
+    if mylist is None:
+        mylist = []
+    mylist.append(item)
+    return mylist

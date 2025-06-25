@@ -1,0 +1,48 @@
+Generators — Yielding Values Lazily
+
+What is a generator?
+A function that yields values one at a time using yield
+Maintains state between calls
+
+def count_up_to(n):
+    i = 1
+    while i <= n:
+        yield i
+        i += 1
+
+for num in count_up_to(3):
+    print(num)
+1
+2
+3
+
+
+def outer():
+    yield 1
+    yield from [2, 3]
+    yield 4
+
+print(list(outer()))  # [1, 2, 3, 4]
+
+
+def running_average():
+    total = 0
+    count = 0
+    average = None
+
+    while True:
+        num = yield average  # yield first, wait for .send()
+        total += num
+        count += 1
+        average = total / count
+
+avg_gen = running_average()
+next(avg_gen)  # Prime the generator (starts at `yield average`)
+
+print(avg_gen.send(10))  # 10.0
+print(avg_gen.send(20))  # 15.0
+print(avg_gen.send(30))  # 20.0
+
+yield average pauses the generator and waits for input
+send(num) passes a value into the generator at the paused point
+Generator resumes, updates state, and yields the new average

@@ -1,0 +1,75 @@
+pip install sqlalchemy psycopg2-binary
+sqlalchemy: ORM engine
+psycopg2-binary: PostgreSQL database driver
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+DATABASE_URL = "postgresql://username:password@localhost/mydb"
+
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
+
+Base = declarative_base()
+
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, func
+from sqlalchemy.orm import relationship
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(50), unique=True, nullable=False)
+    email = Column(String(100), unique=True)
+
+    posts = relationship('Post', back_populates='author')
+
+class Post(Base):
+    __tablename__ = 'posts'
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(100))
+    body = Column(Text)
+    created_at = Column(DateTime, default=func.now())
+    user_id = Column(Integer, ForeignKey('users.id'))
+
+    author = relationship('User', back_populates='posts')
+
+Base.metadata.create_all(engine)
+
+
+new_user = User(username='ash', email='ash@example.com')
+session.add(new_user)
+session.commit()
+
+post = Post(title='My First Post', body='Hello!', author=new_user)
+session.add(post)
+session.commit()
+
+# Get all users
+users = session.query(User).all()
+
+# Filter
+ash = session.query(User).filter_by(username='ash').first()
+
+# Join with posts
+posts = session.query(Post).join(User).filter(User.username == 'ash').all()
+
+ash.email = 'new@example.com'
+session.commit()
+
+session.delete(ash)
+session.commit()
+
+
+result = session.execute("SELECT * FROM users WHERE id = :id", {"id": 1})
+print(result.fetchall())
+
+
+To protect from sql injection:
+user_input = "ashu"
+result = session.execute(
+    text("SELECT * FROM users WHERE username = :username"),
+    {"username": user_input}
+)
